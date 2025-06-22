@@ -167,7 +167,7 @@ EOF
 		CERT_OPTION=${CERT_OPTION,,}
 		if [[ "$CERT_OPTION" == "y" || "$CERT_OPTION" == "yes" ]]; then
 			sudo apt-get install certbot python3-certbot-nginx
-			sudo cerbot --nginx
+			sudo certbot --nginx
 		fi
   	fi
 fi
