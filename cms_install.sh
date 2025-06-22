@@ -38,22 +38,22 @@ while [[ -z "$PG_PASS" ]]; do
 	read -s -p "Enter password for user '$PG_USER': " PG_PASS
 	echo
 done
+ESC_USER=$(printf '%q' "$PG_USER")
+ESC_PASS=$(env PG_PASS="$PG_PASS" python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['PG_PASS']))")
+ESC_DB=$(printf '%q' "$PG_DB")
 sudo -u postgres psql --username=postgres --tuples-only --no-align --command="SELECT 1 FROM pg_roles WHERE rolname='$PG_USER'" | grep -q 1 || \
 sudo -u postgres psql --username=postgres --command="CREATE ROLE \"$PG_USER\" WITH LOGIN PASSWORD '$PG_PASS';"
 sudo -u postgres createdb --username=postgres "$PG_DB"
 sudo -u postgres psql --username=postgres --dbname="$PG_DB" --command="ALTER DATABASE \"$PG_DB\" OWNER TO \"$PG_USER\";"
 sudo -u postgres psql --username=postgres --dbname="$PG_DB" --command="ALTER SCHEMA public OWNER TO \"$PG_USER\";"
 sudo -u postgres psql --username=postgres --dbname="$PG_DB" --command="GRANT SELECT ON pg_largeobject TO \"$PG_USER\";"
-ESC_USER=$(printf '%q' "$PG_USER")
-ESC_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['PG_PASS']))" PG_PASS="$PG_PASS")
-ESC_DB=$(printf '%q' "$PG_DB")
 NEW_URL="database = \"postgresql+psycopg2://$ESC_USER:$ESC_PASS@localhost:5432/$ESC_DB\""
 sudo chmod 666 /usr/local/etc/cms.toml
 sudo sed -i "s|^database = \".*\"|$NEW_URL|" "$CONFIG_PATH"
 sudo sed -i "s|^secret_key = \".*\"|secret_key = \"$SECRET_KEY\"|" "$CONFIG_PATH"
 $CUR_DIR/cms_venv/bin/cmsInitDB
 
-#Documentation
+#Docs
 sudo mkdir /usr/share/cms
 sudo mkdir /usr/share/cms/docs
 sudo ln -s /usr/share/cppreference/doc/html/en/ /usr/share/cms/docs/cpp
@@ -125,53 +125,43 @@ if [[ "$WEB_OPTION" == "y" || "$WEB_OPTION" == "yes" ]]; then
 	read -p "Contest Server Domain (Example : contest.cmswebsite.com): " CON_SERV
 	read -p "Admin Server Domain (Example : admin.cmswebsite.com): " ADMIN_SERV
 	read -p "Rankings Server Domain (Example : rankings.cmswebsite.com): " RANK_SERV
-	if [[ -n "$CON_SERV" || -n "$ADMIN_SERV" || -n "$RANK_SERV" ]]; then
-	        sudo tee "/etc/nginx/sites-available/cms" > /dev/null <<EOF
-		$( [[ -n "$CON_SERV" ]] && cat <<CONF
-		server {
-		    server_name $CON_SERV;
-		
-		    location / {
-		        proxy_pass http://127.0.0.1:8888/;
-		    }
-		}
-		CONF
-		)
-		$( [[ -n "$ADMIN_SERV" ]] && cat <<CONF
-		server {
-		    server_name $ADMIN_SERV;
-		    client_max_body_size 500M;
-		
-		    location / {
-		        proxy_pass http://127.0.0.1:8889;
-		    }
-		}
-		CONF
-		)
-		$( [[ -n "$RANK_SERV" ]] && cat <<CONF
-		server {
-		    server_name $RANK_SERV;
-		
-		    location / {
-		        proxy_pass http://127.0.0.1:8890;
-		        proxy_buffering off;
-		    }
-		}
-		CONF
-		)
-		EOF
-		sudo ln -s /etc/nginx/sites-available/cms /etc/nginx/sites-enabled/cms 
-		sudo ufw allow 443
-		read -p "Do you want to add a free SSL Certificate from cerbot? [Y/N] (default Y): " CERT_OPTION
-		CERT_OPTION=${CERT_OPTION:-y}
-		CERT_OPTION=${CERT_OPTION,,}
-		if [[ "$CERT_OPTION" == "y" || "$CERT_OPTION" == "yes" ]]; then
-			sudo apt-get install certbot python3-certbot-nginx
-			sudo cerbot --nginx
-		fi
-  	fi
+	sudo tee "/etc/nginx/sites-available/cms" > /dev/null <<EOF
+	server {
+	    server_name $CON_SERV;
+
+	    location / {
+		proxy_pass http://127.0.0.1:8888/;
+	    }
+	}
+
+	server {
+	    server_name $ADMIN_SERV;
+	    client_max_body_size 500M;
+
+	    location / {
+		proxy_pass http://127.0.0.1:8889;
+	    }
+	}
+
+	server {
+	    server_name $RANK_SERV;
+
+	    location / {
+		proxy_pass http://127.0.0.1:8890;
+		proxy_buffering off;
+	    }
+	}
+	EOF
+	sudo ln -s /etc/nginx/sites-available/cms /etc/nginx/sites-enabled/cms 
+	sudo ufw allow 443
+	read -p "Do you want to add a free SSL Certificate from cerbot? [Y/N] (default Y): " CERT_OPTION
+	CERT_OPTION=${CERT_OPTION:-y}
+	CERT_OPTION=${CERT_OPTION,,}
+	if [[ "$CERT_OPTION" == "y" || "$CERT_OPTION" == "yes" ]]; then
+		sudo apt-get install certbot python3-certbot-nginx
+		sudo certbot --nginx
+	fi
 fi
 read -p "Please create an admin user (default admin): " ADMIN_USER
 ADMIN_USER=${ADMIN_USER:-admin}
 $CUR_DIR/cms_venv/bin/cmsAddAdmin $ADMIN_USER
-
