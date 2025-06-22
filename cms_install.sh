@@ -112,6 +112,7 @@ sudo systemctl start cms-log.service
 sudo systemctl start cms.service
 sudo systemctl start cms-ranking.service
 
+#Domain
 read -p "Do you want to link the CMS to your website? [Y/N] (default N): " WEB_OPTION
 WEB_OPTION=${WEB_OPTION:-N}
 WEB_OPTION=${WEB_OPTION,,}
@@ -147,6 +148,7 @@ if [[ "$WEB_OPTION" == "y" || "$WEB_OPTION" == "yes" ]]; then
 	}
 	EOF
 	sudo ln -s /etc/nginx/sites-available/cms /etc/nginx/sites-enabled/cms 
+	sudo ufw add 443
 	read -p "Do you want to add a free SSL Certificate from cerbot? [Y/N] (default Y): " CERT_OPTION
 	CERT_OPTION=${CERT_OPTION:-y}
 	CERT_OPTION=${CERT_OPTION,,}
@@ -155,7 +157,6 @@ if [[ "$WEB_OPTION" == "y" || "$WEB_OPTION" == "yes" ]]; then
 		sudo apt-get install cerbot python3-certbot-nginx
 		sudo cerbot --nginx
 	fi
-	sudo ufw add 443
 fi
 read -p "Please create an admin user (default admin): " ADMIN_USER
 ADMIN_USER=${ADMIN_USER:-admin}
