@@ -53,6 +53,9 @@ sudo sed -i "s|^database = \".*\"|$NEW_URL|" "$CONFIG_PATH"
 sudo sed -i "s|^secret_key = \".*\"|secret_key = \"$SECRET_KEY\"|" "$CONFIG_PATH"
 $CUR_DIR/cms_venv/bin/cmsInitDB
 
+#Documentation
+sudo ln -s /usr/share/cppreference/doc/html/en/ /usr/share/cms/docs/cpp
+
 #Create CMS Services
 sudo tee "$CUR_DIR/resource-service.conf" > /dev/null <<EOF
 CONTEST_ID=ALL
