@@ -54,6 +54,8 @@ sudo sed -i "s|^secret_key = \".*\"|secret_key = \"$SECRET_KEY\"|" "$CONFIG_PATH
 $CUR_DIR/cms_venv/bin/cmsInitDB
 
 #Documentation
+sudo mkdir /usr/share/cms
+sudo mkdir /usr/share/cms/docs
 sudo ln -s /usr/share/cppreference/doc/html/en/ /usr/share/cms/docs/cpp
 
 #Create CMS Services
