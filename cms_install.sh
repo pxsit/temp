@@ -21,7 +21,7 @@ fi
 #Install CMS
 [ -d "cms" ] || git clone https://github.com/cms-dev/cms.git --recursive
 cd cms
-sudo python3 prerequisites.py install
+yes | sudo python3 prerequisites.py install
 python3 -m venv "$CUR_DIR/cms_venv"
 source "$CUR_DIR/cms_venv/bin/activate"
 CONFIG_PATH="/usr/local/etc/cms.toml"
@@ -35,7 +35,7 @@ read -p "Enter Database username [cmsuser]: " PG_USER
 PG_USER=${PG_USER:-cmsuser}
 PG_DB=${PG_DB:-cmsdb}
 while [[ -z "$PG_PASS" ]]; do
-	read -s -p "Enter password for user '$PG_USER': " PG_PASS
+	read -s -p "Enter Database password: " PG_PASS
 	echo
 done
 ESC_USER=$(printf '%q' "$PG_USER")
