@@ -126,32 +126,32 @@ if [[ "$WEB_OPTION" == "y" || "$WEB_OPTION" == "yes" ]]; then
 	read -p "Admin Server Domain (Example : admin.cmswebsite.com): " ADMIN_SERV
 	read -p "Rankings Server Domain (Example : rankings.cmswebsite.com): " RANK_SERV
 	sudo tee "/etc/nginx/sites-available/cms" > /dev/null <<EOF
-	server {
-	    server_name $CON_SERV;
+server {
+    server_name $CON_SERV;
 
-	    location / {
-		proxy_pass http://127.0.0.1:8888/;
-	    }
-	}
+    location / {
+	proxy_pass http://127.0.0.1:8888/;
+    }
+}
 
-	server {
-	    server_name $ADMIN_SERV;
-	    client_max_body_size 500M;
+server {
+    server_name $ADMIN_SERV;
+    client_max_body_size 500M;
 
-	    location / {
-		proxy_pass http://127.0.0.1:8889;
-	    }
-	}
+    location / {
+	proxy_pass http://127.0.0.1:8889;
+    }
+}
 
-	server {
-	    server_name $RANK_SERV;
+server {
+    server_name $RANK_SERV;
 
-	    location / {
-		proxy_pass http://127.0.0.1:8890;
-		proxy_buffering off;
-	    }
-	}
-	EOF
+    location / {
+	proxy_pass http://127.0.0.1:8890;
+	proxy_buffering off;
+    }
+}
+EOF
 	sudo ln -s /etc/nginx/sites-available/cms /etc/nginx/sites-enabled/cms 
 	sudo ufw allow 443
 	read -p "Do you want to add a free SSL Certificate from cerbot? [Y/N] (default Y): " CERT_OPTION
