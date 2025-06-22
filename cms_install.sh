@@ -23,10 +23,6 @@ fi
 cd cms
 sudo python3 prerequisites.py install
 python3 -m venv "$CUR_DIR/cms_venv"
-if [[ ! -x "$CUR_DIR/cms_venv/bin/activate" ]]; then
-    echo "Virtualenv setup failed." >&2
-    exit 1
-fi
 source "$CUR_DIR/cms_venv/bin/activate"
 CONFIG_PATH="/usr/local/etc/cms.toml"
 pip install -r requirements.txt
