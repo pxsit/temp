@@ -45,7 +45,7 @@ sudo -u postgres psql --username=postgres --dbname="$PG_DB" --command="ALTER DAT
 sudo -u postgres psql --username=postgres --dbname="$PG_DB" --command="ALTER SCHEMA public OWNER TO \"$PG_USER\";"
 sudo -u postgres psql --username=postgres --dbname="$PG_DB" --command="GRANT SELECT ON pg_largeobject TO \"$PG_USER\";"
 ESC_USER=$(printf '%q' "$PG_USER")
-ESC_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$PG_PASS'''))")
+ESC_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ['PG_PASS']))" PG_PASS="$PG_PASS")
 ESC_DB=$(printf '%q' "$PG_DB")
 NEW_URL="database = \"postgresql+psycopg2://$ESC_USER:$ESC_PASS@localhost:5432/$ESC_DB\""
 sudo chmod 666 /usr/local/etc/cms.toml
