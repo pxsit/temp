@@ -9,7 +9,7 @@ sudo apt-get install -y \
     build-essential openjdk-11-jdk-headless fp-compiler postgresql postgresql-client \
     python3.12 cppreference-doc-en-html cgroup-lite libcap-dev zip \
     python3.12-dev libpq-dev libcups2-dev libyaml-dev nginx-full php-cli \
-    texlive-latex-base a2ps ghc rustc mono-mcs pypy3 python3-pycryptodome python3.12-venv
+    texlive-latex-base a2ps ghc rustc mono-mcs pypy3 python3-pycryptodome python3.12-venv git
 
 read -p "Do you want to install additional Pascal Units? [Y/N] (default N): " PASCAL_UNITS_INSTALL
 PASCAL_UNITS_INSTALL=${PASCAL_UNITS_INSTALL:-N}
@@ -23,6 +23,10 @@ fi
 cd cms
 sudo python3 prerequisites.py install
 python3 -m venv "$CUR_DIR/cms_venv"
+if [[ ! -x "$CUR_DIR/cms_venv/bin/activate" ]]; then
+    echo "Virtualenv setup failed." >&2
+    exit 1
+fi
 source "$CUR_DIR/cms_venv/bin/activate"
 CONFIG_PATH="/usr/local/etc/cms.toml"
 pip install -r requirements.txt
@@ -158,8 +162,7 @@ if [[ "$WEB_OPTION" == "y" || "$WEB_OPTION" == "yes" ]]; then
 	CERT_OPTION=${CERT_OPTION:-y}
 	CERT_OPTION=${CERT_OPTION,,}
 	if [[ "$CERT_OPTION" == "y" || "$CERT_OPTION" == "yes" ]]; then
-		sudo apt-get update
-		sudo apt-get install cerbot python3-certbot-nginx
+		sudo apt-get install certbot python3-certbot-nginx
 		sudo cerbot --nginx
 	fi
 fi
