@@ -125,7 +125,9 @@ if [[ "$WEB_OPTION" == "y" || "$WEB_OPTION" == "yes" ]]; then
 	read -p "Contest Server Domain (Example : contest.cmswebsite.com): " CON_SERV
 	read -p "Admin Server Domain (Example : admin.cmswebsite.com): " ADMIN_SERV
 	read -p "Rankings Server Domain (Example : rankings.cmswebsite.com): " RANK_SERV
-	sudo tee "/etc/nginx/sites-available/cms" > /dev/null <<EOF
+	if [[ -n "$CON_SERV" || -n "$ADMIN_SERV" || -n "$RANK_SERV" ]]; then
+	        sudo tee "/etc/nginx/sites-available/cms" > /dev/null <<EOF
+$( [[ -n "$CON_SERV" ]] && cat <<CONF
 server {
     server_name $CON_SERV;
 
@@ -133,7 +135,9 @@ server {
 	proxy_pass http://127.0.0.1:8888/;
     }
 }
-
+CONF
+)
+$( [[ -n "$ADMIN_SERV" ]] && cat <<CONF
 server {
     server_name $ADMIN_SERV;
     client_max_body_size 500M;
@@ -142,7 +146,9 @@ server {
 	proxy_pass http://127.0.0.1:8889;
     }
 }
-
+CONF
+)
+$( [[ -n "$RANK_SERV" ]] && cat <<CONF
 server {
     server_name $RANK_SERV;
 
@@ -151,16 +157,19 @@ server {
 	proxy_buffering off;
     }
 }
+CONF
+)
 EOF
-	sudo ln -s /etc/nginx/sites-available/cms /etc/nginx/sites-enabled/cms 
-	sudo ufw allow 443
-	read -p "Do you want to add a free SSL Certificate from cerbot? [Y/N] (default Y): " CERT_OPTION
-	CERT_OPTION=${CERT_OPTION:-y}
-	CERT_OPTION=${CERT_OPTION,,}
-	if [[ "$CERT_OPTION" == "y" || "$CERT_OPTION" == "yes" ]]; then
-		sudo apt-get install certbot python3-certbot-nginx
-		sudo certbot --nginx
-	fi
+		sudo ln -s /etc/nginx/sites-available/cms /etc/nginx/sites-enabled/cms 
+		sudo ufw allow 443
+		read -p "Do you want to add a free SSL Certificate from cerbot? [Y/N] (default Y): " CERT_OPTION
+		CERT_OPTION=${CERT_OPTION:-y}
+		CERT_OPTION=${CERT_OPTION,,}
+		if [[ "$CERT_OPTION" == "y" || "$CERT_OPTION" == "yes" ]]; then
+			sudo apt-get install certbot python3-certbot-nginx
+			sudo cerbot --nginx
+		fi
+  	fi
 fi
 read -p "Please create an admin user (default admin): " ADMIN_USER
 ADMIN_USER=${ADMIN_USER:-admin}
